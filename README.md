@@ -10,8 +10,7 @@ PR allows to:
 ## Installation
 Clone the repo into .shortcuts directory in termux home (for launching it via widget). Termux widget supports subdirs in shortcuts.
 
-cd ~/.shortcuts
-git clone && https://github.com/ClockGen/proot_launcher
+cd ~/.shortcuts && git clone https://github.com/ClockGen/proot_launcher
 
 ## Usage
 It is highly recommended to read integrated help before actually doing anything.  
