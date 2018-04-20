@@ -415,16 +415,16 @@ installDistro(){
 checkConn
 while [[ ! -f /data/data/com.termux/files/usr/bin/tar ]]
 do
-	prs "You need termux tar, install it now? (y/n):"
+	prs "You need bsdtar, install it now? (y/n):"
 	read inp
 	case "$inp" in
 		[Yy])
 		apt-get update
-		apt-get -y install tar
+		apt-get -y install bsdtar
 		errchk
 		;;
 		*)
-		prn "Use ${CRED}\"pkg install tar\"${CDEF} to install it manually."
+		prn "Use ${CRED}\"pkg install bsdtar\"${CDEF} to install it manually."
 		exit
 		;;
 	esac
@@ -468,7 +468,7 @@ do
 done
 mute cd -
 prs "Extracting rootfs archive..."
-mute tar -xf "$BINDDIR/../${DISTLINK##*/}" -C "$BINDDIR"
+mute bsdtar -xf "$BINDDIR/../${DISTLINK##*/}" -C "$BINDDIR"
 prn "${CRED}Done.${CDEF}"
 prs "Removing unnecessary stuff from rootfs..."
 rm -rf "$BINDDIR/boot"rm -rf "$BINDDIR/usr/lib/firmware"
