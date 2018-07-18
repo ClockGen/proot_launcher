@@ -9,183 +9,33 @@
 #Buka
 #----------------------------------------------------------------------------
 
-#Warning! If you value your mental health,
-#Don't read the code below! Or, at least,
-#Use protection. It's that bad.
+#Warning! the following code is a giant pile
+#of procedural code that was just getting added
+#when a need appeared. It’s not pretty.
 
 ########################
 #Default Variables
 ########################
 
-EPRES="720x1280"
+initVars(){
+PRES="720x1280"
 EDIR=""
 BINDDIR="/data/data/com.termux/files/home/arch"
 ACTIVITY="com.iiordanov.freebVNC/com.iiordanov.bVNC.bVNC"
 DISPLAYID=":0"
 SHCOMM="bash -i"
-EDECMD="openbox-session & pcmanfm --desktop & lxpanel"
+DECMD="openbox-session & pcmanfm --desktop & lxpanel"
 BINLIST="gimp inkscape libreoffice geany"
-
-########################
-#A script to pass to container shell
-########################
-
-execvnc=$(cat << "EOF"
-#!/bin/bash
-CRED='\033[0;31m'
-CDEF='\033[0m'
-SERVPORT=$((5900 + ${DISPLAYID:1}))
+PRPATH="$(readlink -f $0)"
 blist="\
 tigervnc openbox lxpanel lxtask lxappearance \
 lxappearance-obconf pcmanfm adwaita-icon-theme \
-cantarell-fonts noto-fonts lilyterm gpicview \
+noto-fonts lilyterm gpicview \
 leafpad file-roller unrar p7zip unzip zip \
 gtk-engines gtk-engine-murrine openbox-themes \
-geany geany-plugins lxhotkey ffmpegthumbnailer \
+lxhotkey ffmpegthumbnailer \
 "
-mute(){
-if [[ -n $PDEBUG ]]
-then
-	"$@"
-else
-	"$@" >/dev/null 2>/dev/null
-fi
 }
-checkConn(){
-if [[ ! $(ping -w 10 -c 2 8.8.8.8) ]]
-then
-	printf "Check your internet connection."
-	exit
-fi
-}
-errchk(){
-if [[ $? != 0 ]]
-then
-	prn "Something went wrong."
-	exit
-fi
-}
-killVNC(){
-if $(mute vncserver -kill "$DISPLAYID")
-then
-	printf "VNC server stopped...\n"
-else
-	if $(mute pgrep "Xvnc")
-	then
-		printf "Could not stop vnc properly, trying to kill...\n"
-		pkill "Xvnc"
-	fi
-fi
-}
-checkXvnc(){
-if $(mute pgrep "Xvnc")
-then
-	printf "VNC server is already running, restart? (y/n):"
-	read inp
-	case "$inp" in
-		[YUyu])
-		killVNC
-		;;
-		*)
-		printf "Not restarting...\n"
-		exit 1
-		;;
-	esac
-else
-	mute rm /tmp/.X0-lock
-	mute rm /tmp/.X11-unix/X0
-fi
-}
-
-startVNC(){
-if $(mute vncserver "$DISPLAYID" -depth 24 -geometry "$PRES")
-then
-	printf "New VNC server is started as ${CRED}localhost:${SERVPORT}${CDEF}\n\
-Connect to this address with your vnc client\n"
-else
-	printf "${CRED}Something went wrong.\nInitialize PDEBUG variable and run the script again.${CDEF}\n"
-fi
-}
-startDE(){
-export DISPLAY="$DISPLAYID"
-printf "Start DE? (y/n):"
-read inp
-case "$inp" in
-	[YUyu])
-	if [[ $(type -P "vncserver") ]]
-	then
-		while [[ ! -f ~/.vnc/passwd ]]
-		do
-			printf "setup vnc passwd (y/n):"
-			read inp
-			case "$inp" in
-				[Yy])
-				vncpasswd
-				;;
-				*)
-				exit
-				;;
-			esac
-		done
-		printf "Starting DE. Use ${CRED}Ctrl+C${CDEF} to kill the session.\n"
-		checkXvnc
-		startVNC
-		mute eval "$DECMD"
-		killVNC
-		exit
-	else
-		printf "Vncserver is not found in path. Press \"b\" to install base system or \"v\" for vncserver only. \"c\" to cancel (b/v/c):"
-		read inp
-		case "$inp" in
-			[Bb])
-			checkConn
-			pacman --noconfirm -Syu
-			errchk
-			pacman --noconfirm -S $blist
-			errchk
-			pacman --noconfirm -Scc
-			errchk
-			;;
-			[Vv])
-			pacman --noconfirm -S tigervnc
-			errchk
-			pacman --noconfirm -Scc
-			errchk
-			;;
-			*)
-			printf "Use pacman -S vncserver to install it. Don\'t forget to install DE too.\n"
-			;;
-		esac
-		exit 127
-	fi
-	;;
-	*)
-	printf "Opened proot shell. Use ${CRED}\"exit\"${CDEF} to return to termux shell.\n"
-	${SHCOMM}
-	;;
-esac
-}
-
-if [[ -z "$CARG" ]]
-then
-	startDE
-else
-	export DISPLAY="$DISPLAYID"
-	if $(mute pgrep "Xvnc")
-	then
-		printf "Program started in already running DE session\n"
-		mute eval "$CARG"
-		exit
-	else
-		printf "${CRED}Closing the app will close this session${CDEF}\n"
-		startVNC
-		mute eval "$DECMD & $CARG"
-		killVNC
-		exit
-	fi
-fi
-EOF
-)
 
 ########################
 #Common functions
@@ -202,209 +52,249 @@ printf "%b" "$1"
 mute(){
 if [[ -n $PDEBUG ]]
 then
-	"$@"
+    "$@"
 else
-	"$@" >/dev/null 2>/dev/null
+    "$@" >/dev/null 2>/dev/null
 fi
 }
 
 chkPerm(){
 while [[ ! $(ls /sdcard) && $(type -P termux-setup-storage) ]]
 do
-	termux-setup-storage
+    termux-setup-storage
 done
 }
 
 checkConn(){
 if [[ ! $(ping -w 10 -c 2 8.8.8.8) ]]
 then
-	prn "Check your internet connection."
-	exit
+    prn "Check your internet connection."
+    exit
 fi
 }
 
 errchk(){
 if [[ $? != 0 ]]
 then
-	prn "Something went wrong."
-	exit
+    prn "Something went wrong."
+    exit
 fi
 }
 
 getSDPath(){
 for i in $(ls /storage)
 do
-	if [[ $i =~ ^[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}$ ]]
-	then
-		EDIR="/storage/$i"
-		prn "Detected sdcard path: ${CRED}$EDIR${CDEF}\n"
-	fi
+    if [[ $i =~ ^[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}$ ]]
+    then
+        EDIR="/storage/$i"
+        prn "Detected sdcard path: ${CRED}$EDIR${CDEF}\n"
+        fi
 done
 }
 
+checkPkg(){
+while [[ ! -f /data/data/com.termux/files/usr/bin/$1 ]]
+do
+    prs "You need $1, install it now? (y/n):"
+    read inp
+    case "$inp" in
+        [Yy])
+        checkConn
+        apt-get update
+        apt-get -y install $1
+        errchk
+    ;;
+        *)
+        prn "Use ${CRED}\"pkg install $1\"${CDEF} to install it manually."
+        exit
+        ;;
+    esac
+done
+}
+
+printHelp(){
+less "${PRPATH}help"
+}
+
+sourceCfg(){
+source "/data/data/com.termux/files/home/.prootrc"
+}
+
+setArgs(){
+BINARR=( ${BINLIST} )
+for i in "${!BINARR[@]}"
+do
+    prn "$(( i+1 ))) ${CRED}${BINARR[$i]}${CDEF}"
+done
+read inp
+if [[ $inp =~ ^[1-"${#BINARR[@]}"]$ ]]
+then
+    BINCMD="${BINARR[$(( $inp-1 ))]}"
+    prn "Using ${CRED}$BINCMD${CDEF}..."
+else
+    prn "Wrong input"
+    exit
+fi
+CARG="$BINCMD \"$ARGS\""
+}
+
 ########################
-#Container binding
+#Container functions
+########################
+
+killVNC(){
+if $(mute vncserver -kill "$DISPLAYID")
+then
+    prn "VNC server stopped..."
+else
+    if $(mute pgrep "Xvnc")
+    then
+        prn "Could not stop vnc properly, trying to kill..."
+        pkill "Xvnc"
+    fi
+fi
+}
+
+checkXvnc(){
+if $(mute pgrep "Xvnc")
+then
+    prs "VNC server is already running, restart? (y/n):"
+    read inp
+    case "$inp" in
+        [YUyu])
+        killVNC
+        ;;
+        *)
+        prn "Not restarting..."
+        exit
+        ;;
+    esac
+else
+    mute rm /tmp/.X0-lock
+    mute rm /tmp/.X11-unix/X0
+fi
+}
+
+startVNC(){
+SERVPORT=$((5900 + ${DISPLAYID:1}))
+if $(mute vncserver "$DISPLAYID" -depth 24 -geometry "$PRES")
+then
+    prn "New VNC server is started as ${CRED}localhost:${SERVPORT}${CDEF}\n\
+Connect to this address with your vnc client"
+else
+    prn "${CRED}Something went wrong.\nInitialize PDEBUG variable and run the script again.${CDEF}"
+fi
+}
+
+startDE(){
+prs "Start VNC, connect to Xserver XSDL or open a shell? (v/x/s):"
+read inp
+case "$inp" in
+    [Vv])
+    if [[ $(type -P "vncserver") ]]
+    then
+        while [[ ! -f ~/.vnc/passwd ]]
+        do
+            prs "Setup VNC passwod (y/n):"
+            read inp
+            case "$inp" in
+                [Yy])
+                vncpasswd
+                ;;
+                *)
+                prn "Exiting..."
+                exit
+                ;;
+            esac
+        done
+        prn "Starting VNC and specified autostart command. Use ${CRED}Ctrl+C${CDEF} to kill the session."
+        export DISPLAY="$DISPLAYID"
+        checkXvnc
+        startVNC
+        mute eval "$DECMD"
+        killVNC
+        exit
+    else
+        prs "Vncserver is not found in path. Press \"b\" to install base system (openbox+lxde parts). \"c\" to cancel (b/c):"
+        read inp
+        case "$inp" in
+            [Bb])
+            checkConn
+            pacman-key --init
+            errchk
+            pacman-key --populate archlinuxarm
+            errchk
+            pacman --noconfirm -Syu
+            errchk
+            pacman --noconfirm -S $blist
+            errchk
+            ;;
+            *)
+            prn "Use shell mode to install vncserver and other parts manually."
+            ;;
+        esac
+        exit
+    fi
+    ;;
+    [Xx])
+        export PULSE_SERVER=tcp:127.0.0.1:4712
+        export DISPLAY=:0
+        prn "Connecting to Xserver XSDL..."
+        mute eval "$DECMD"
+    ;;
+    *)
+    prn "Opened proot shell. Use ${CRED}\"exit\"${CDEF} to return to termux shell."
+    ${SHCOMM}
+    ;;
+esac
+}
+
+startContainer(){
+if [[ -z "$CARG" ]]
+then
+    startDE
+else
+    export DISPLAY="$DISPLAYID"
+    if $(mute pgrep "Xvnc")
+    then
+        printf "Program started in already running DE session\n"
+        mute eval "$CARG"
+        exit
+    else
+        printf "${CRED}Closing the app will close this session${CDEF}\n"
+        startVNC
+        mute eval "$DECMD & $CARG"
+        killVNC
+        exit
+    fi
+fi
+}
+
+########################
+#Container starting
 ########################
 
 startProot(){
+
 unset LD_PRELOAD
-while [[ ! $(type -P proot) ]]
-do
-	prs "Proot is not installed. Install it now? (y/n):"
-	read inp
-	case $inp in
-		[Yy])
-			checkConn
-			apt-get update
-			apt-get -y install proot
-			errchk
-		;;
-		*)
-			prn "Use ${CRED}\"pkg install proot\"${CDEF} to install it manually."
-			exit
-		;;
-	esac
-done
+
+checkPkg proot
+
 if [[ ! -f "$BINDDIR/usr/bin/env" ]]
 then
-	prn "It appears that path container is empty.\nUse ${CRED}--install${CDEF} argument first."
-	exit
+    prn "It appears that path container is empty.\nUse ${CRED}--install${CDEF} argument first."
+    exit
 fi
-proot --link2symlink -0 -r "$BINDDIR"	\
--b /system -b /dev/ -b /sys/ -b /proc/	\
--b /sys/fs/selinux/			\
--b /data/data/com.termux/files/home/	\
--b /sdcard/ -b "$EDIR" /usr/bin/env	\
--i DECMD="$EDECMD" PRES="$EPRES"	\
-HOME=/root TERM="xterm-256color"	\
-PS1='[root@stable \W]$ ' CARG="$CARG"	\
-PDEBUG="$PDEBUG" DISPLAYID="$DISPLAYID"	\
-SHCOMM="$SHCOMM"			\
-PATH=/bin:/usr/bin:/sbin:/usr/sbin:/bin	\
-/bin/bash -c "$execvnc"
-}
 
-########################
-#Help
-########################
-
-printHelp(){
-printf "$(cat << "EOF2"
-Overview:
-
-This script will launch an existing
-armhf/arm64 distro installation in
-a proot container.
-
-When launched with no arguments, script
-will launch a proot container,
-specified in either user configuration
-or default variables.
-
-Typically, you just need to launch it
-and script will do the rest
-(installation of missing dependencies
-and packages, configuration of the script,
-installation and configuration of an
-archlinux distro, installation and setup
-of vnc and other system parts. You will be
-asked for every action that needs your
-approval).
-
-Supported arguments:
-
---help, -h - prints out this text.
-
---install, -i - installation of an ArchLinuxARM
-distributive (see installation section)
-
---setup, -s - run configuration wizard
-(see configuration section)
-
-/path/to/any/file - prompts a dialog with
-program to open the file inside the
-container (see termux integration
-section).
-
-Configuration:
-
-At the first start, an installation
-wizard will start. You'll be asked
-to enter values as you like. Default
-values should be fine and it is
-only advisable to change these if you
-know what you are doing.
-
-To use the default value, simply press
-enter (leave the field blank) when
-asked for input.
-
-When configuration is done, wizard
-will write a configuration file at
-~/.prootrc. You can edit it manually
-too.
-
-You can re-run setup wizard using a
-corresponding argument.
-
-Installation:
-
-If no distributive is present at
-configured installation path,
-you will be asked to begin
-installation.
-
-The script will download archlinuxarm
-archive for your architecture and md5
-checksum file to installation path parent
-directory. It will compare md5 sum and
-extract the archive to installation path.
-If target path is not empty, the script
-will allow to purge it.
-
-If the archive is recent (matches with
-downloaded md5 sum), the script will
-not redownload it, so you can manually
-put the archive to installation path
-parent directory.
-
-After extracting, the script will remove
-unnecessary folders from rootfs to free
-some space.
-
-Termux integration:
-
-If you created symlink to
-termux-file-editor during configuration,
-you can quickly open files by sharing them
-to termux with your android file manager
-or any other app that supports share option.
-
-After sharing the file, you will be asked
-to select which program to use. You have
-defined these programs during configuration.
-
-After that, if there is no graphical
-sessions running, a new one will be started
-with program, selected earlier. Closing
-the program will also close the session.
-
-Alternatively, if there was a session
-already, the program will be started in it
-and the session will persist after closing
-the program.
-
-In both cases, an android activity will be
-started. By default, it is bVnc viewer,
-so you need to install it from play store
-or github page.
-
-License:
-
-This script was written by Buka and
-licensed under beerware license.
-EOF2
-)" | less
+proot --link2symlink -0 -r "$BINDDIR"   \
+-b /system -b /dev/ -b /sys/ -b /proc/  \
+-b /sys/fs/selinux/                     \
+-b /data/data/com.termux/files/home/    \
+-b /sdcard/ -b "$EDIR" /usr/bin/env     \
+-i HOME=/root TERM="xterm-256color"     \
+PDEBUG="$PDEBUG" CARG="$CARG"           \
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:/bin \
+/bin/bash "$PRPATH" "--startcon"
 }
 
 ########################
@@ -413,48 +303,34 @@ EOF2
 
 installDistro(){
 checkConn
-while [[ ! -f /data/data/com.termux/files/usr/bin/tar ]]
-do
-	prs "You need bsdtar, install it now? (y/n):"
-	read inp
-	case "$inp" in
-		[Yy])
-		apt-get update
-		apt-get -y install bsdtar
-		errchk
-		;;
-		*)
-		prn "Use ${CRED}\"pkg install bsdtar\"${CDEF} to install it manually."
-		exit
-		;;
-	esac
-done
+checkPkg bsdtar
+checkPkg wget
 ARCH=$(uname -m)
 DISTLINK="http://os.archlinuxarm.org/os/ArchLinuxARM-$ARCH-latest.tar.gz"
 ARCHPATH="$BINDDIR/../${DISTLINK##*/}"
 prn $DISTLINK
 if [[ ! $ARCH =~ ^(aarch64|arm64|armv7)$ ]]
 then
-	prn "Detected architecture (${CRED}$ARCH${CDEF}) is not supported."
-	exit 2
+    prn "Detected architecture (${CRED}$ARCH${CDEF}) is not supported."
+    exit
 elif [[ -d $BINDDIR ]]
 then
-	if [[ $(ls -A $BINDDIR) ]]
-	then
-		prn "Target directory is not empty, clear it now?\n${CRED}ALL DATA WILL BE REMOVED!${CDEF}\n(type \"YES\" to confirm):"
-		read inp
-		case "$inp" in
-			"YES")
-			rm -rf "$BINDDIR/*"
-			;;
-			*)
-			exit
-			;;
-		esac
-	fi
+    if [[ $(ls -A $BINDDIR) ]]
+    then
+        prn "Target directory is not empty, clear it now?\n${CRED}ALL DATA WILL BE REMOVED!${CDEF}\n(type \"YES\" to confirm):"
+        read inp
+        case "$inp" in
+            "YES")
+            rm -rf "$BINDDIR/*"
+            ;;
+            *)
+            exit
+            ;;
+        esac
+    fi
 else
-	prn "$BINDDIR does not exist, creating..."
-	mkdir -p "$BINDDIR"
+    prn "$BINDDIR does not exist, creating..."
+    mkdir -p "$BINDDIR"
 fi
 prn "Downloading archlinuxarm archive md5 sum..."
 wget "$DISTLINK.md5" -O "$ARCHPATH.md5"
@@ -462,9 +338,9 @@ errchk
 cd "$BINDDIR/../"
 while ! (md5sum -c "$BINDDIR/../${DISTLINK##*/}.md5")
 do
-	prn "Downloading archlinuxarm rootfs archive..."
-	wget "$DISTLINK" -O "$BINDDIR/../${DISTLINK##*/}"
-	errchk
+    prn "Downloading archlinuxarm rootfs archive..."
+    wget "$DISTLINK" -O "$BINDDIR/../${DISTLINK##*/}"
+    errchk
 done
 mute cd -
 prs "Extracting rootfs archive..."
@@ -488,102 +364,80 @@ prs "Enter VNC screen resolution:"
 read inp
 if [[ $inp =~ ^[0-9]{3,4}x[0-9]{3,4}$ ]]
 then
-	EPRES="$inp"
-	prn "Using:${CRED}$EPRES${CDEF}\n"
+    PRES="$inp"
+    prn "Using:${CRED}$PRES${CDEF}\n"
 else
-	prn "Using default:${CRED}$EPRES${CDEF}\n"
+    prn "Using default:${CRED}$PRES${CDEF}\n"
 fi
 prs "Enter VNC display number without \":\":"
 read inp
 if [[ $inp =~ ^[0-9]{1,4}$ ]]
 then
-	DISPLAYID=":$inp"
-	prn "Using:${CRED}$DISPLAYID${CDEF}\n"
+    DISPLAYID=":$inp"
+    prn "Using:${CRED}$DISPLAYID${CDEF}\n"
 else
-	prn "Using default:${CRED}$DISPLAYID${CDEF}\n"
+    prn "Using default:${CRED}$DISPLAYID${CDEF}\n"
 fi
 prs "Enter installation path (relative to termux home):"
 read inp
 if [[ -n $inp ]]
 then
-	BINDDIR="/data/data/com.termux/files/home/$inp"
-	prn "Using:${CRED}$BINDDIR${CDEF}\n"
+    BINDDIR="/data/data/com.termux/files/home/$inp"
+    prn "Using:${CRED}$BINDDIR${CDEF}\n"
 else
-	prn "Using default:${CRED}$BINDDIR${CDEF}\n"
+    prn "Using default:${CRED}$BINDDIR${CDEF}\n"
 fi
 prs "Enter shell name (and arguments) to autostart:"
 read inp
 if [[ -n $inp ]]
 then
-	SHCOMM="$inp"
-	prn "Using:${CRED}$SHCOMM${CDEF}\n"
+    SHCOMM="$inp"
+    prn "Using:${CRED}$SHCOMM${CDEF}\n"
 else
-	prn "using default:${CRED}$SHCOMM${CDEF}\n"
+    prn "using default:${CRED}$SHCOMM${CDEF}\n"
 fi
 prs "Enter commands to autostart (for example, a DE),\nseparated by an ampersand sign (&).\nDon't put the sign after the last command:"
 read inp
 if [[ -n $inp ]]
 then
-	EDECMD="$inp"
-	prn "Using:${CRED}$EDECMD${CDEF}\n"
+    DECMD="$inp"
+    prn "Using:${CRED}$DECMD${CDEF}\n"
 else
-	prn "Using default:${CRED}$EDECMD${CDEF}\n"
+    prn "Using default:${CRED}$DECMD${CDEF}\n"
 fi
 prs "Enter list of binaries for quick open, separated by space:"
 read inp
 if [[ -n $inp ]]
 then
-	BINLIST="$inp"
-	prn "Using:${CRED}$BINLIST${CDEF}\n"
+    BINLIST="$inp"
+    prn "Using:${CRED}$BINLIST${CDEF}\n"
 else
-	prn "Using default:${CRED}$BINLIST${CDEF}\n"
+    prn "Using default:${CRED}$BINLIST${CDEF}\n"
 fi
 getSDPath
 prn "Writing configuration file to ~/.prootrc..."
 echo "\
-EPRES="\"$EPRES\""
+PRES="\"$PRES\""
 EDIR="\"$EDIR\""
 BINDDIR="\"$BINDDIR\""
 ACTIVITY="\"$ACTIVITY\""
 DISPLAYID="\"$DISPLAYID\""
 SHCOMM="\"$SHCOMM\""
-EDECMD="\"$EDECMD\""
+DECMD="\"$DECMD\""
 BINLIST="\"$BINLIST\""
-" > ~/.prootrc
+" > "/data/data/com.termux/files/home/.prootrc"
 prs "Create symlink to termux-file-editor for quick file opening? (enter for yes):"
 read inp
 if [[ -z $inp ]]
 then
-	if [[ -f /data/data/com.termux/files/home//bin/termux-file-editor ]]
-	then
-		prn "Moving old termux-file-editor to backup..."
-		mv "${HOME}/bin/termux-file-editor" "${HOME}/bin/termux-file-editor.bak"
-	fi
-	mkdir -p "${HOME}/bin"
-	ln -s "$(readlink -f $0)" "${HOME}/bin/termux-file-editor"
+    if [[ -f /data/data/com.termux/files/home//bin/termux-file-editor ]]
+    then
+        prn "Moving old termux-file-editor to backup..."
+        mv "${HOME}/bin/termux-file-editor" "${HOME}/bin/termux-file-editor.bak"
+    fi
+    mkdir -p "${HOME}/bin"
+    ln -s "$(readlink -f $0)" "${HOME}/bin/termux-file-editor"
 fi
-}
-
-#######################
-#Argument Passing
-#######################
-
-setArgs(){
-BINARR=( ${BINLIST} )
-for i in "${!BINARR[@]}"
-do
-	prn "$(( i+1 ))) ${CRED}${BINARR[$i]}${CDEF}"
-done
-read inp
-if [[ $inp =~ ^[1-"${#BINARR[@]}"]$ ]]
-then
-	BINCMD="${BINARR[$(( $inp-1 ))]}"
-	prn "Using ${CRED}$BINCMD${CDEF}..."
-else
-	prn "Wrong input"
-	exit
-fi
-CARG="$BINCMD \"$ARGS\""
 }
 
 #######################
@@ -595,43 +449,51 @@ CDEF='\033[0m'
 
 if [[ ! ($# =~ ^[0-1]$) ]]
 then
-	prn "Wrong number of arguments"
-	exit
+    prn "Wrong number of arguments"
+    exit
 fi
 
 chkPerm
 
-if [[ ! -f ~/.prootrc ]]
+if [[ ! -f /data/data/com.termux/files/home/.prootrc ]]
 then
-	prn "Hello. Either this is the first run, \
+    prn "Hello. Either this is the first run, \
 or the config file is missing."
 setup
 fi
 
 case "$1" in
-	"")
-	source "/data/data/com.termux/files/home/.prootrc"
-	prn "To get more information, use ${CRED}--help${CDEF}."
-	startProot
-	;;
-	"--help"|"-h")
-	printHelp
-	;;
-	"--install"|"-i")
-	source "/data/data/com.termux/files/home/.prootrc"
-	installDistro "$@"
-	;;
-	"--setup"|"-s")
-	setup
-	;;
-	--*|-*)
-	prn "Unknown argument ${CRED}$1${CDEF}.\nUse ${CRED}--help${CDEF} to display help."
-	;;
-	*)
-	source "/data/data/com.termux/files/home/.prootrc"
-	ARGS="$@"
-	setArgs
-	mute am start --user 0 "$ACTIVITY"
-	startProot
-	;;
+    "")
+        initVars
+        sourceCfg
+        prn "To get more information, use ${CRED}--help${CDEF}."
+        startProot
+    ;;
+    "--help"|"-h")
+        printHelp
+    ;;
+    "--install"|"-i")
+        sourceCfg
+        installDistro "$@"
+    ;;
+    "--setup"|"-s")
+        initVars
+        setup
+    ;;
+    "--startcon")
+        initVars
+        sourceCfg
+        startContainer
+    ;;
+    --*|-*)
+        prn "Unknown argument ${CRED}$1${CDEF}.\nUse ${CRED}--help${CDEF} to display help."
+    ;;
+    *)
+        initVars
+        sourceCfg
+        ARGS="$@"
+        setArgs
+        mute am start --user 0 "$ACTIVITY"
+        startProot
+    ;;
 esac

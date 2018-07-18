@@ -1,0 +1,113 @@
+Overview:
+
+This script will launch an existing
+armhf/arm64 distro installation in
+a proot container.
+
+When launched with no arguments, script
+will launch a proot container,
+specified in either user configuration
+or default variables.
+
+Typically, you just need to launch it
+and script will do the rest
+(installation of missing dependencies
+and packages, configuration of the script,
+installation and configuration of an
+archlinux distro, installation and setup
+of vnc and other system parts. You will be
+asked for every action that needs your
+approval).
+
+Supported arguments:
+
+--help, -h - prints out this text.
+
+--install, -i - installation of an ArchLinuxARM
+distributive (see installation section)
+
+--setup, -s - run configuration wizard
+(see configuration section)
+
+/path/to/any/file - prompts a dialog with
+program to open the file inside the
+container (see termux integration
+section).
+
+Configuration:
+
+At the first start, an installation
+wizard will start. You'll be asked
+to enter values as you like. Default
+values should be fine and it is
+only advisable to change these if you
+know what you are doing.
+
+To use the default value, simply press
+enter (leave the field blank) when
+asked for input.
+
+When configuration is done, wizard
+will write a configuration file at
+~/.prootrc. You can edit it manually
+too.
+
+You can re-run setup wizard using a
+corresponding argument.
+
+Installation:
+
+If no distributive is present at
+configured installation path,
+you will be asked to begin
+installation.
+
+The script will download archlinuxarm
+archive for your architecture and md5
+checksum file to installation path parent
+directory. It will compare md5 sum and
+extract the archive to installation path.
+If target path is not empty, the script
+will allow to purge it.
+
+If the archive is recent (matches with
+downloaded md5 sum), the script will
+not redownload it, so you can manually
+put the archive to installation path
+parent directory.
+
+After extracting, the script will remove
+unnecessary folders from rootfs to free
+some space.
+
+Termux integration:
+
+If you created symlink to
+termux-file-editor during configuration,
+you can quickly open files by sharing them
+to termux with your android file manager
+or any other app that supports share option.
+
+After sharing the file, you will be asked
+to select which program to use. You have
+defined these programs during configuration.
+
+After that, if there is no graphical
+sessions running, a new one will be started
+with program, selected earlier. Closing
+the program will also close the session.
+
+Alternatively, if there was a session
+already, the program will be started in it
+and the session will persist after closing
+the program.
+
+In both cases, an android activity will be
+started. By default, it is bVnc viewer,
+so you need to install it from play store
+or github page.
+
+License:
+
+This script was written by Buka and
+licensed under beerware license.
