@@ -349,7 +349,7 @@ prs "Removing unnecessary stuff from rootfs..."
 rm -rf "$BINDDIR/boot"rm -rf "$BINDDIR/usr/lib/firmware"
 rm -rf "$BINDDIR/usr/lib/modules"
 rm "$BINDDIR/etc/resolv.conf"
-printf "nameserver 8.8.8.8" > "$BINDDIR/etc/resolv.conf"
+printf "nameserver 8.8.8.8\nnameserver 8.8.4.4\nnameserver 1.1.1.1" > "$BINDDIR/etc/resolv.conf"
 prn "${CRED}Done.${CDEF}"
 }
 
