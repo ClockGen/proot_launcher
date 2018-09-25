@@ -308,7 +308,6 @@ checkPkg wget
 ARCH=$(uname -m)
 DISTLINK="http://os.archlinuxarm.org/os/ArchLinuxARM-$ARCH-latest.tar.gz"
 ARCHPATH="$BINDDIR/../${DISTLINK##*/}"
-prn $DISTLINK
 if [[ ! $ARCH =~ ^(aarch64|arm64|armv7)$ ]]
 then
     prn "Detected architecture (${CRED}$ARCH${CDEF}) is not supported."
@@ -344,7 +343,7 @@ do
 done
 mute cd -
 prs "Extracting rootfs archive..."
-mute bsdtar -xf "$BINDDIR/../${DISTLINK##*/}" -C "$BINDDIR"
+mute bsdtar -xpf "$BINDDIR/../${DISTLINK##*/}" -C "$BINDDIR"
 prn "${CRED}Done.${CDEF}"
 prs "Removing unnecessary stuff from rootfs..."
 rm -rf "$BINDDIR/boot"rm -rf "$BINDDIR/usr/lib/firmware"
@@ -459,6 +458,7 @@ if [[ ! -f /data/data/com.termux/files/home/.prootrc ]]
 then
     prn "Hello. Either this is the first run, \
 or the config file is missing."
+initVars
 setup
 fi
 
@@ -473,6 +473,7 @@ case "$1" in
         printHelp
     ;;
     "--install"|"-i")
+        initVars
         sourceCfg
         installDistro "$@"
     ;;
